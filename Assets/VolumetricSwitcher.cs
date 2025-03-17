@@ -8,9 +8,13 @@ public class VolumetricSwitcher : MonoBehaviour
 {
     //private static DepthKitObject Obj = new DepthKitObject();
     //public GameObject depthkitObject = Obj.depthkitObject;
-    public double depthkitOffset = 0.0; // Obj.start_time;
     public GameObject depthkitObject;
+    public double depthkitOffset = 0.0; // Obj.start_time;
     public GameObject riggedModel;
+    public double riggedModelOffset = 0.0;
+    public AudioClip voiceover;
+    private AudioSource Audio;
+    public float AudioOffset = 0f;
 
     public bool manualOverride = false; // toggles next three vectors
 
@@ -20,6 +24,7 @@ public class VolumetricSwitcher : MonoBehaviour
 
     public bool StartWithRiggedModel = false;
     private bool isUsingRiggedModel;
+    private bool finishPlaying = false;
 
     private float currentTime = 0f;
     private float clipDuration;
@@ -36,6 +41,20 @@ public class VolumetricSwitcher : MonoBehaviour
         //MatchScale();
 
         isUsingRiggedModel = StartWithRiggedModel;
+
+        Audio = gameObject.AddComponent<AudioSource>();
+
+        if (voiceover != null)
+        {
+            Audio.clip = voiceover;
+            Audio.loop = false;
+            StartCoroutine(loopAudio());
+        }
+        else
+        {
+            Debug.LogError("No audio clip assigned!");
+        }
+
         SwitchMode();
     }
 
@@ -50,7 +69,9 @@ public class VolumetricSwitcher : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update() {}
+    void Update() {
+
+    }
 
     void MatchScale()
     {
@@ -80,9 +101,10 @@ public class VolumetricSwitcher : MonoBehaviour
         if (isUsingRiggedModel)
         {
             VideoPlayer depthkitVideoPlayer = depthkitObject.GetComponent<VideoPlayer>();
-            Debug.Log($"Length: {depthkitVideoPlayer.length}");
-            //Debug.Log($"Time: {depthkitVideoPlayer.time}");
-            float normalizedTime = (float)(depthkitVideoPlayer.time / depthkitVideoPlayer.length);
+            //Debug.Log($"Length: {depthkitVideoPlayer.length}");
+            Debug.Log($" Depthkit Time: {depthkitVideoPlayer.time}");
+            float normalizedTime = (float)(((depthkitVideoPlayer.time + riggedModelOffset) / depthkitVideoPlayer.length) % 1); // TODO: Make this actually find the right time
+            Debug.Log(normalizedTime);
 
             depthkitObject.SetActive(false);
             riggedModel.SetActive(true);
@@ -99,8 +121,8 @@ public class VolumetricSwitcher : MonoBehaviour
             depthkitObject.SetActive(true);
 
             VideoPlayer depthkitVideoPlayer = depthkitObject.GetComponent<VideoPlayer>();
-            depthkitVideoPlayer.time = (currentTime * state.length);
-            Debug.Log($"Time: {currentTime * state.length}");
+            depthkitVideoPlayer.time = (currentTime * state.length) - riggedModelOffset;
+            Debug.Log($"Depthkit Time: {(currentTime * state.length) - riggedModelOffset}");
             depthkitVideoPlayer.Play();
             
 
@@ -117,6 +139,22 @@ public class VolumetricSwitcher : MonoBehaviour
             depthkitObject.transform.rotation = degrees;
         }
         SwitchMode();
+    }
+
+    private void setDepthkitTime()
+    {
+
+    }
+
+    IEnumerator loopAudio()
+    {
+        while (!finishPlaying)
+        {
+            Audio.time = AudioOffset;
+            Audio.Play();
+
+            yield return new WaitForSeconds(voiceover.length - AudioOffset);
+        }
     }
 }
 
