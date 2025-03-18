@@ -420,7 +420,7 @@ MonoBehaviour:
   volumetricModels:
   - {fileID: 1239654805}
   riggedModel: {fileID: 1573918429}
-  alignmentsList: []
+  AssignAlignmentsEveryTime: 0
   saveFileName: alignments.json
 --- !u!4 &631759299
 Transform:
@@ -1253,7 +1253,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1610426876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1266,9 +1266,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b88d90e10da48f46994c0291ef93290, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  depthkitObject: {fileID: 0}
+  depthkitObject: {fileID: 1239654805}
   depthkitOffset: 0
-  riggedModel: {fileID: 0}
+  riggedModel: {fileID: 1573918429}
   riggedModelOffset: 5
   voiceover: {fileID: 8300000, guid: 931dd5cddbf40ab44a97a135e5326d56, type: 3}
   AudioOffset: 5

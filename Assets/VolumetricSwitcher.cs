@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Depthkit;
 using UnityEngine.Video;
+using System;
 
 public class VolumetricSwitcher : MonoBehaviour
 {
@@ -28,18 +29,34 @@ public class VolumetricSwitcher : MonoBehaviour
 
     private float currentTime = 0f;
     private float clipDuration;
+    private bool initialised = false;
 
     // Start is called before the first frame update
     void Start()
     {
-
-        depthkitObject.GetComponent<VideoPlayer>().playOnAwake = false;
         //depthkitObject.GetComponent<VideoPlayer>().time = depthkitOffset;
         //depthkitObject.GetComponent<VideoPlayer>().Play();
 
         //AllignObjects();
         //MatchScale();
 
+        
+    }
+
+    void AllignObjects()
+    {
+        depthkitObject.transform.position = riggedModel.transform.position;
+        //depthkitObject.transform.rotation = riggedModel.transform.rotation;
+
+        Debug.Log($"Rigged Model rotation: {riggedModel.transform.rotation.eulerAngles}, Depthkit object rotation: {depthkitObject.transform.rotation.eulerAngles}");
+        Debug.Log($"Rigged Model scale: {riggedModel.transform.localScale}, Depthkit Object scale: {depthkitObject.transform.localScale}");
+        Debug.Log($"Rigged Model location: {riggedModel.transform.position}, Depthkit Object location: {depthkitObject.transform.position}");
+    }
+
+    public void Initialise()
+    {
+        depthkitObject.GetComponent<VideoPlayer>().playOnAwake = false;
+        
         isUsingRiggedModel = StartWithRiggedModel;
 
         Audio = gameObject.AddComponent<AudioSource>();
@@ -55,17 +72,8 @@ public class VolumetricSwitcher : MonoBehaviour
             Debug.LogError("No audio clip assigned!");
         }
 
+        initialised = true;
         SwitchMode();
-    }
-
-    void AllignObjects()
-    {
-        depthkitObject.transform.position = riggedModel.transform.position;
-        //depthkitObject.transform.rotation = riggedModel.transform.rotation;
-
-        Debug.Log($"Rigged Model rotation: {riggedModel.transform.rotation.eulerAngles}, Depthkit object rotation: {depthkitObject.transform.rotation.eulerAngles}");
-        Debug.Log($"Rigged Model scale: {riggedModel.transform.localScale}, Depthkit Object scale: {depthkitObject.transform.localScale}");
-        Debug.Log($"Rigged Model location: {riggedModel.transform.position}, Depthkit Object location: {depthkitObject.transform.position}");
     }
 
     // Update is called once per frame
@@ -106,10 +114,11 @@ public class VolumetricSwitcher : MonoBehaviour
             float normalizedTime = (float)(((depthkitVideoPlayer.time + riggedModelOffset) / depthkitVideoPlayer.length) % 1); // TODO: Make this actually find the right time
             Debug.Log(normalizedTime);
 
-            depthkitObject.SetActive(false);
-            riggedModel.SetActive(true);
+            setObjectVisibility(depthkitObject, false);
+            setObjectVisibility(riggedModel, true);
             //riggedMovements.enabled = true;
-            
+
+            riggedModel.GetComponent<Animator>().enabled = true;
             riggedModel.GetComponent<Animator>().Play("museum talk 1", 0, normalizedTime);
         }
         else
@@ -118,18 +127,25 @@ public class VolumetricSwitcher : MonoBehaviour
             currentTime = state.normalizedTime;
 
             //AllignObjects();
-            depthkitObject.SetActive(true);
+            setObjectVisibility(depthkitObject, true);
 
             VideoPlayer depthkitVideoPlayer = depthkitObject.GetComponent<VideoPlayer>();
             depthkitVideoPlayer.time = (currentTime * state.length) - riggedModelOffset;
             Debug.Log($"Depthkit Time: {(currentTime * state.length) - riggedModelOffset}");
             depthkitVideoPlayer.Play();
-            
 
-            riggedModel.SetActive(false);
+
+            setObjectVisibility(riggedModel, false);
         }
 
         isUsingRiggedModel = !isUsingRiggedModel;
+    }
+
+    private void setObjectVisibility(GameObject model, bool visible)
+    {
+        var renderers = model.GetComponentsInChildren<Renderer>();
+        foreach (var r in renderers)
+            r.enabled = visible;
     }
 
     public void SwitchMode(Quaternion degrees)
@@ -139,6 +155,11 @@ public class VolumetricSwitcher : MonoBehaviour
             depthkitObject.transform.rotation = degrees;
         }
         SwitchMode();
+    }
+
+    public bool CheckIfInitialised()
+    {
+        return initialised;
     }
 
     private void setDepthkitTime()
