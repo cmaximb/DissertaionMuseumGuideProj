@@ -1076,6 +1076,11 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3863627493481486905, guid: 28d76dbdc996e3e4a8df9b7e2e384372,
+        type: 3}
+      propertyPath: m_audioClip
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6420053717845362126, guid: 28d76dbdc996e3e4a8df9b7e2e384372,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1269,14 +1274,14 @@ MonoBehaviour:
   depthkitObject: {fileID: 1239654805}
   depthkitOffset: 0
   riggedModel: {fileID: 1573918429}
-  riggedModelOffset: 5
+  riggedModelOffset: 6.5
   voiceover: {fileID: 8300000, guid: 931dd5cddbf40ab44a97a135e5326d56, type: 3}
-  AudioOffset: 5
+  AudioOffset: 6.5
   manualOverride: 0
   manualPosition: {x: 0, y: 0, z: 0}
   manualRotation: {x: 0, y: 0, z: 0}
   manualScale: {x: 1, y: 1, z: 1}
-  StartWithRiggedModel: 1
+  StartWithRiggedModel: 0
 --- !u!4 &1610426877
 Transform:
   m_ObjectHideFlags: 0

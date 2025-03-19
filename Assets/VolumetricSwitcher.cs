@@ -40,7 +40,7 @@ public class VolumetricSwitcher : MonoBehaviour
         //AllignObjects();
         //MatchScale();
 
-        
+
     }
 
     void AllignObjects()
@@ -56,7 +56,7 @@ public class VolumetricSwitcher : MonoBehaviour
     public void Initialise()
     {
         depthkitObject.GetComponent<VideoPlayer>().playOnAwake = false;
-        
+
         isUsingRiggedModel = StartWithRiggedModel;
 
         Audio = gameObject.AddComponent<AudioSource>();
@@ -71,6 +71,11 @@ public class VolumetricSwitcher : MonoBehaviour
         {
             Debug.LogError("No audio clip assigned!");
         }
+
+        var animator = riggedModel.GetComponent<Animator>();
+        animator.enabled = true;
+        animator.speed = 1.0f;
+        animator.Update(0f);
 
         initialised = true;
         SwitchMode();
@@ -118,7 +123,6 @@ public class VolumetricSwitcher : MonoBehaviour
             setObjectVisibility(riggedModel, true);
             //riggedMovements.enabled = true;
 
-            riggedModel.GetComponent<Animator>().enabled = true;
             riggedModel.GetComponent<Animator>().Play("museum talk 1", 0, normalizedTime);
         }
         else
@@ -130,10 +134,9 @@ public class VolumetricSwitcher : MonoBehaviour
             setObjectVisibility(depthkitObject, true);
 
             VideoPlayer depthkitVideoPlayer = depthkitObject.GetComponent<VideoPlayer>();
-            depthkitVideoPlayer.time = (currentTime * state.length) - riggedModelOffset;
-            Debug.Log($"Depthkit Time: {(currentTime * state.length) - riggedModelOffset}");
+            depthkitVideoPlayer.time = (currentTime * state.length) - riggedModelOffset + 0.01; // Fix the inaccuracy from floating point numbers
+            Debug.Log($"Depthkit Time: {(currentTime * state.length) - riggedModelOffset + 0.01}");
             depthkitVideoPlayer.Play();
-
 
             setObjectVisibility(riggedModel, false);
         }
@@ -165,6 +168,16 @@ public class VolumetricSwitcher : MonoBehaviour
     private void setDepthkitTime()
     {
 
+    }
+
+    public double getDepthkitOffset()
+    {
+        return depthkitOffset;
+    }
+
+    public double getRiggedOffset()
+    {
+        return riggedModelOffset;
     }
 
     IEnumerator loopAudio()
