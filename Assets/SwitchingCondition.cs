@@ -18,5 +18,9 @@ public class SwitchingCondition : MonoBehaviour
         {
             switcher.SwitchMode();
         }
+        if (switcher.clipEnded() && switcher.checkIfUsingRiggedModel())
+        {
+            switcher.triggerTransition();
+        }
     }
 }

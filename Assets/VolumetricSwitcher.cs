@@ -4,6 +4,31 @@ using UnityEngine;
 using Depthkit;
 using UnityEngine.Video;
 using System;
+using JetBrains.Annotations;
+
+[Serializable]
+public abstract class BaseActionTransition
+{
+
+}
+
+[Serializable]
+//[UnityEngine.SerializeReference]
+public class Action : BaseActionTransition
+{
+    public GameObject depthkitObject;
+    public double depthkitOffset = 0.0; // Obj.start_time;
+    public GameObject riggedModel;
+    public double riggedModelOffset = 0.0;
+    public AudioClip voiceover;
+    private AudioSource Audio;
+    public float AudioOffset = 0f;
+}
+
+public class Transition : BaseActionTransition
+{
+    public string transitionName;
+}
 
 public class VolumetricSwitcher : MonoBehaviour
 {
@@ -17,11 +42,13 @@ public class VolumetricSwitcher : MonoBehaviour
     private AudioSource Audio;
     public float AudioOffset = 0f;
 
-    public bool manualOverride = false; // toggles next three vectors
+    [SerializeReference]
+    public List<BaseActionTransition> steps = new List<BaseActionTransition>()
+    {
+        new Action() // Start with an Action
+    };
 
-    [HideInInspector] public Vector3 manualPosition;
-    [HideInInspector] public Vector3 manualRotation;
-    [HideInInspector] public Vector3 manualScale = Vector3.one;
+    public bool showing;
 
     public bool StartWithRiggedModel = false;
     private bool isUsingRiggedModel;
@@ -30,6 +57,8 @@ public class VolumetricSwitcher : MonoBehaviour
     private float currentTime = 0f;
     private float clipDuration;
     private bool initialised = false;
+
+    private int CurrentAction = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -116,7 +145,7 @@ public class VolumetricSwitcher : MonoBehaviour
             VideoPlayer depthkitVideoPlayer = depthkitObject.GetComponent<VideoPlayer>();
             //Debug.Log($"Length: {depthkitVideoPlayer.length}");
             Debug.Log($" Depthkit Time: {depthkitVideoPlayer.time}");
-            float normalizedTime = (float)(((depthkitVideoPlayer.time + riggedModelOffset) / depthkitVideoPlayer.length) % 1); // TODO: Make this actually find the right time
+            float normalizedTime = (float)((depthkitVideoPlayer.time) / depthkitVideoPlayer.length); // TODO: Make this actually find the right time
             Debug.Log(normalizedTime);
 
             setObjectVisibility(depthkitObject, false);
@@ -144,6 +173,11 @@ public class VolumetricSwitcher : MonoBehaviour
         isUsingRiggedModel = !isUsingRiggedModel;
     }
 
+    public void triggerTransition()
+    {
+
+    }
+
     private void setObjectVisibility(GameObject model, bool visible)
     {
         var renderers = model.GetComponentsInChildren<Renderer>();
@@ -158,6 +192,16 @@ public class VolumetricSwitcher : MonoBehaviour
             depthkitObject.transform.rotation = degrees;
         }
         SwitchMode();
+    }
+
+    public bool clipEnded()
+    {
+        return riggedModel.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime == 1;
+    }
+
+    public bool checkIfUsingRiggedModel()
+    {
+        return isUsingRiggedModel;
     }
 
     public bool CheckIfInitialised()

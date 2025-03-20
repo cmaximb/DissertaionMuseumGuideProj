@@ -153,7 +153,7 @@ public class MoveModels : MonoBehaviour
             {
                 VideoPlayer player = v.GetComponent<VideoPlayer>();
                 player.playOnAwake = false;
-                player.time = FindObjectOfType<VolumetricSwitcher>().getDepthkitOffset(); ;
+                player.time = FindObjectOfType<VolumetricSwitcher>().getDepthkitOffset(); 
                 player.Pause();
             }
             catch
