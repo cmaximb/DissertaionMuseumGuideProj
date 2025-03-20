@@ -1898,11 +1898,12 @@ MonoBehaviour:
   riggedModelOffset: 0
   voiceover: {fileID: 8300000, guid: b18021706ba8f9d49a34aff854a850d0, type: 3}
   AudioOffset: 0
-  manualOverride: 0
-  manualPosition: {x: 0, y: 0, z: 0}
-  manualRotation: {x: 0, y: 0, z: 0}
-  manualScale: {x: 1, y: 1, z: 1}
+  steps: []
+  showing: 0
   StartWithRiggedModel: 0
+  references:
+    version: 2
+    RefIds: []
 --- !u!4 &1610426877
 Transform:
   m_ObjectHideFlags: 0
