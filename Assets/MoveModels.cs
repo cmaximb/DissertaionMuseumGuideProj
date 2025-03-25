@@ -6,7 +6,7 @@ using UnityEngine.Video;
 using System;
 
 [System.Serializable]
-public class Transform
+public class TransformModel
 {
     public Vector3 location;
     public Quaternion rotation;
@@ -15,8 +15,8 @@ public class Transform
 [System.Serializable]
 public class Alignments
 {
-    public Transform volumetricModelTransforms;
-    public Transform riggedModelTransforms;
+    public TransformModel volumetricModelTransforms;
+    public TransformModel riggedModelTransforms;
 }
 
 public class MoveModels : MonoBehaviour
@@ -83,7 +83,7 @@ public class MoveModels : MonoBehaviour
 
         if (volumetricModels[currentModelNumber] != null)
         {
-            data.volumetricModelTransforms = new Transform
+            data.volumetricModelTransforms = new TransformModel
             {
                 location = volumetricModels[currentModelNumber].transform.position,
                 rotation = volumetricModels[currentModelNumber].transform.rotation
@@ -93,7 +93,7 @@ public class MoveModels : MonoBehaviour
 
         if (riggedModel != null)
         {
-            data.riggedModelTransforms = new Transform
+            data.riggedModelTransforms = new TransformModel
             {
                 location = riggedModel.transform.position,
                 rotation = riggedModel.transform.rotation
