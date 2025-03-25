@@ -18,13 +18,17 @@ public class EnsureNextSequenceAdded : Editor
     {
         serializedObject.Update();
 
+        if (FindObjectOfType<VolumetricSwitcher>() == null ) { return; }
+
         VolumetricSwitcher switcher = FindObjectOfType<VolumetricSwitcher>();
         for (int i = 0; i < steps.arraySize; i++)
         {
             SerializedProperty element = steps.GetArrayElementAtIndex(i);
-            if (element.managedReferenceValue is BaseActionTransition step)
+            if ((element.managedReferenceValue is BaseActionTransition step) && switcher.GetRiggedModel() != null)
             {
-                step.Init(switcher.GetRiggedModel());
+                GameObject riggedModel = switcher.GetRiggedModel();
+                riggedModel.AddComponent<Animator>();
+                step.Init(switcher.GetRiggedModel(), switcher);
             }
         }
 
@@ -51,11 +55,18 @@ public class EnsureNextSequenceAdded : Editor
             SerializedProperty newElement = steps.GetArrayElementAtIndex(steps.arraySize - 1);
             if (lastIsAction)
             {
-                newElement.managedReferenceValue = new Transition();
                 
+                BaseActionTransition newStep = new Transition();
+                newStep.Init(switcher.GetRiggedModel(), switcher);
+                newElement.managedReferenceValue = newStep;
+
             }
             else
-                newElement.managedReferenceValue = new Action();
+            {
+                BaseActionTransition newStep = new Action();
+                newStep.Init(switcher.GetRiggedModel(), switcher);
+                newElement.managedReferenceValue = newStep;
+            }
         }
 
         if (steps.arraySize > 1 && GUILayout.Button("Remove Last Step"))

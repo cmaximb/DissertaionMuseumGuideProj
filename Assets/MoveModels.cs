@@ -46,8 +46,9 @@ public class MoveModels : MonoBehaviour
         if (alignmentsList.Count >= volumetricModels.Count)
         {
             VolumetricSwitcher switcher = FindObjectOfType<VolumetricSwitcher>(); // TODO: Only work with one volumetric switcher
+            // Stop Update from calling this a second time or initialising twice
+            StartCoroutine(DisableSelfNextFrame());
             switcher.Initialise();
-            this.gameObject.SetActive(false);
         }
 
         HandleMovement();
@@ -68,6 +69,12 @@ public class MoveModels : MonoBehaviour
             Debug.Log("Alignment Saved!");
         }
         
+    }
+
+    private IEnumerator DisableSelfNextFrame()
+    {
+        yield return new WaitForEndOfFrame(); // or yield return null; for just 1 frame delay
+        this.gameObject.SetActive(false);
     }
 
     private void SaveAlignmentData()
@@ -153,7 +160,7 @@ public class MoveModels : MonoBehaviour
             {
                 VideoPlayer player = v.GetComponent<VideoPlayer>();
                 player.playOnAwake = false;
-                player.time = FindObjectOfType<VolumetricSwitcher>().getDepthkitOffset(); 
+                //player.time = FindObjectOfType<VolumetricSwitcher>().getDepthkitOffset(); 
                 player.Pause();
             }
             catch
@@ -168,8 +175,8 @@ public class MoveModels : MonoBehaviour
             //animator.enabled = false;
             animator.speed = 0f;
             AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
-            float startingTime = (float)FindObjectOfType<VolumetricSwitcher>().getRiggedOffset();
-            animator.Play("museum talk 1", 0, startingTime / state.length);
+            //float startingTime = (float)FindObjectOfType<VolumetricSwitcher>().getRiggedOffset();
+            animator.Play("museum talk 1", 0, 0); // startingTime / state.length);
             animator.Update(0f);
             Debug.Log(animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
         }
