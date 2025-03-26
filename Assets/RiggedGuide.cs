@@ -19,14 +19,13 @@ public class RiggedGuide : MonoBehaviour
         movement = GetComponent<Animator>();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void followPlayer()
     {
         if (player == null) return;
 
         float distance = Vector3.Distance(transform.position, player.position);
 
-        if (distance > agent.stoppingDistance - 0.5)
+        if (distance > agent.stoppingDistance)
         {
             //Vector3 direction = (player.position - transform.position).normalized;
             //transform.position += direction * followSpeed * Time.deltaTime;
@@ -42,5 +41,10 @@ public class RiggedGuide : MonoBehaviour
             agent.ResetPath();
             movement.SetFloat("Speed", 0);
         }
+    }
+
+    public float distanceToObject(Vector3 location)
+    {
+        return Vector3.Distance(transform.position, location);
     }
 }

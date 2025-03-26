@@ -4,16 +4,34 @@ using UnityEngine;
 
 public class SwitchingCondition : MonoBehaviour
 {
-    public VolumetricSwitcher switcher;
-    // Start is called before the first frame update
+    public GameObject volumetricObject;
+    public GameObject riggedmodel;
+    private VolumetricSwitcher switcher;
+    private List<Alignments> alignments;
+
     void Start()
     {
-        
+        switcher = GetComponent<VolumetricSwitcher>();
     }
 
-    // Update is called once per frame
     void Update()
     {
+        if (switcher.CheckIfInitialised() && alignments == null)
+        {
+            alignments = switcher.GetAlignments();
+        }
+
+        RiggedGuide guide = riggedmodel.GetComponent<RiggedGuide>();
+        guide.followPlayer();
+        //foreach (Alignments alignment in alignments)
+        //{
+        //    if (guide.distanceToObject(alignment.riggedModelTransforms.location) < 0.5f)
+        //    {
+
+        //    }
+        //}
+
+
         if (Input.GetKeyDown(KeyCode.Space) && switcher.CheckIfInitialised())
         {
             switcher.SwitchMode();

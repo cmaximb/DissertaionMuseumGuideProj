@@ -169,6 +169,7 @@ public class VolumetricSwitcher : MonoBehaviour
     private bool initialised = false;
 
     private int CurrentStep = 0;
+    private List<Alignments> alignments;
 
     // Start is called before the first frame update
     void Start()
@@ -204,8 +205,10 @@ public class VolumetricSwitcher : MonoBehaviour
     //    Debug.Log($"Rigged Model location: {riggedModel.transform.position}, Depthkit Object location: {depthkitObject.transform.position}");
     //}
 
-    public void Initialise()
+    public void Initialise(List<Alignments> alignments)
     {
+        this.alignments = alignments;
+
         if (steps[0].GetVolumetricObject() == null)
             throw new Exception("Initial step must be Action");
 
@@ -220,6 +223,11 @@ public class VolumetricSwitcher : MonoBehaviour
     // Update is called once per frame
     void Update() {
 
+    }
+
+    public List<Alignments> GetAlignments()
+    {
+        return alignments;
     }
 
     //void MatchScale()

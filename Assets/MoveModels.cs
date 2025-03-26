@@ -48,7 +48,7 @@ public class MoveModels : MonoBehaviour
             VolumetricSwitcher switcher = FindObjectOfType<VolumetricSwitcher>(); // TODO: Only work with one volumetric switcher
             // Stop Update from calling this a second time or initialising twice
             StartCoroutine(DisableSelfNextFrame());
-            switcher.Initialise();
+            switcher.Initialise(alignmentsList);
         }
 
         HandleMovement();
