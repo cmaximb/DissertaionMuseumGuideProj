@@ -133,6 +133,7 @@ GameObject:
   - component: {fileID: 92128256}
   - component: {fileID: 92128257}
   - component: {fileID: 92128258}
+  - component: {fileID: 92128259}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -208,6 +209,20 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &92128259
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 92128255}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474ea6ac5b5ab77468f551f938aa6d71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 1
+  orientation: {fileID: 1513555809}
 --- !u!1 &157207112
 GameObject:
   m_ObjectHideFlags: 0
@@ -597,7 +612,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &631759298
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -613,7 +628,7 @@ MonoBehaviour:
   volumetricModels:
   - {fileID: 2058985754}
   riggedModel: {fileID: 1573918429}
-  AssignAlignmentsEveryTime: 1
+  AssignAlignmentsEveryTime: 0
   saveFileName: alignments.json
 --- !u!4 &631759299
 Transform:
@@ -2313,7 +2328,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1610426876
 MonoBehaviour:
   m_ObjectHideFlags: 0
