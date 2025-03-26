@@ -17,6 +17,16 @@ public class RiggedGuide : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         movement = GetComponent<Animator>();
+
+        enableMoving();
+    }
+
+    public void enableMoving()
+    {
+        Animator movement = GetComponent<Animator>();
+        movement.enabled = true;
+        movement.speed = 1.0f;
+        movement.Update(0f);
     }
 
     public void followPlayer()
@@ -41,6 +51,12 @@ public class RiggedGuide : MonoBehaviour
             agent.ResetPath();
             movement.SetFloat("Speed", 0);
         }
+    }
+
+    public void walkToLocation(Vector3 location)
+    {
+        agent.SetDestination(location);
+        movement.SetFloat("Speed", agent.velocity.magnitude);
     }
 
     public float distanceToObject(Vector3 location)

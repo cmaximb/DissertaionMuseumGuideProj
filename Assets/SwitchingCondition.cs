@@ -8,6 +8,7 @@ public class SwitchingCondition : MonoBehaviour
     public GameObject riggedmodel;
     private VolumetricSwitcher switcher;
     private List<Alignments> alignments;
+    private bool talking = false;
 
     void Start()
     {
@@ -20,16 +21,25 @@ public class SwitchingCondition : MonoBehaviour
         {
             alignments = switcher.GetAlignments();
         }
+        if (alignments == null)
+        {
+            return;
+        }
+
+        if (talking) { return; }
 
         RiggedGuide guide = riggedmodel.GetComponent<RiggedGuide>();
         guide.followPlayer();
-        //foreach (Alignments alignment in alignments)
-        //{
-        //    if (guide.distanceToObject(alignment.riggedModelTransforms.location) < 0.5f)
-        //    {
 
-        //    }
-        //}
+        foreach (Alignments alignment in alignments)
+        {
+            if (guide.distanceToObject(alignment.riggedModelTransforms.location) < 5f)
+            {
+                guide.walkToLocation(alignment.riggedModelTransforms.location);
+                talking = true;
+                break;
+            }
+        }
 
 
         if (Input.GetKeyDown(KeyCode.Space) && switcher.CheckIfInitialised())

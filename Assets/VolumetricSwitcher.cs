@@ -209,15 +209,15 @@ public class VolumetricSwitcher : MonoBehaviour
     {
         this.alignments = alignments;
 
-        if (steps[0].GetVolumetricObject() == null)
-            throw new Exception("Initial step must be Action");
+        //if (steps[0].GetVolumetricObject() == null)
+        //    throw new Exception("Initial step must be Action");
 
-        steps[0].GetVolumetricObject().GetComponent<VideoPlayer>().playOnAwake = false;
+        //steps[0].GetVolumetricObject().GetComponent<VideoPlayer>().playOnAwake = false;
         
         Audio = gameObject.AddComponent<AudioSource>();
 
         initialised = true;
-        SwitchMode();
+        //SwitchMode();
     }
 
     // Update is called once per frame

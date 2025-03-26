@@ -48,6 +48,11 @@ public class MoveModels : MonoBehaviour
             VolumetricSwitcher switcher = FindObjectOfType<VolumetricSwitcher>(); // TODO: Only work with one volumetric switcher
             // Stop Update from calling this a second time or initialising twice
             StartCoroutine(DisableSelfNextFrame());
+            if (!showRiggedModel)
+            {
+                showRiggedModel = true;
+                SetVisibility();
+            }
             switcher.Initialise(alignmentsList);
         }
 
@@ -192,8 +197,15 @@ public class MoveModels : MonoBehaviour
         float moveSpeed = 1f * Time.deltaTime;
         float rotateSpeed = 50f * Time.deltaTime;
 
-        Vector3 move = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-        currentModel.transform.position += move * moveSpeed;
+
+        if (Input.GetKey(KeyCode.W))
+            currentModel.transform.position += Vector3.forward * moveSpeed;
+        if (Input.GetKey(KeyCode.A))
+            currentModel.transform.position += Vector3.left * moveSpeed;
+        if (Input.GetKey(KeyCode.D))
+            currentModel.transform.position += Vector3.right * moveSpeed;
+        if (Input.GetKey(KeyCode.S))
+            currentModel.transform.position += Vector3.down * moveSpeed;
 
         if (Input.GetKey(KeyCode.LeftArrow))
             currentModel.transform.Rotate(Vector3.up, -rotateSpeed);
