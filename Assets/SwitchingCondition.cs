@@ -1,14 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 public class SwitchingCondition : MonoBehaviour
 {
-    public GameObject volumetricObject;
     public GameObject riggedmodel;
     private VolumetricSwitcher switcher;
     private List<Alignments> alignments;
-    private bool talking = false;
+    private Vector3 currentTalkLocation;
 
     void Start()
     {
@@ -17,7 +17,7 @@ public class SwitchingCondition : MonoBehaviour
 
     void Update()
     {
-        if (switcher.CheckIfInitialised() && alignments == null)
+        if (switcher.GetState() != guideStates.Align && alignments == null)
         {
             alignments = switcher.GetAlignments();
         }
@@ -26,24 +26,30 @@ public class SwitchingCondition : MonoBehaviour
             return;
         }
 
-        if (talking) { return; }
+        if (switcher.GetState() == guideStates.Talk) { return; }
 
         RiggedGuide guide = riggedmodel.GetComponent<RiggedGuide>();
-        guide.followPlayer();
+        if (switcher.GetState() == guideStates.Walk)
+        {
+            guide.followPlayer();
+        }
+        
 
         foreach (Alignments alignment in alignments)
         {
-            if (guide.distanceToObject(alignment.riggedModelTransforms.location) < 5f)
+            if (guide.distanceToObject(alignment.riggedModelTransforms.location) < 0.5f)
             {
                 guide.walkToLocation(alignment.riggedModelTransforms.location);
-                talking = true;
+                currentTalkLocation = alignment.riggedModelTransforms.location;
+                switcher.SwitchState(guideStates.Transition);
                 break;
             }
         }
 
-
-        if (Input.GetKeyDown(KeyCode.Space) && switcher.CheckIfInitialised())
+        if (guide.distanceToObject(currentTalkLocation) > 1.0f && switcher.GetState() == guideStates.Talk)
         {
+            guide.followPlayer();
+            switcher.SwitchState(guideStates.Walk);
             switcher.SwitchMode();
         }
         if (switcher.clipEnded() && switcher.checkIfUsingRiggedModel())

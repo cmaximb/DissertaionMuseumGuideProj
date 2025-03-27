@@ -5,54 +5,55 @@ using Depthkit;
 using UnityEngine.Video;
 using System;
 using JetBrains.Annotations;
+using System.Linq;
+
+public enum guideStates { Align, Walk, Transition, Talk }
+
+//[Serializable]
+//public abstract class BaseActionTransition
+//{
+//    //protected GameObject riggedModel;
+
+//    [NonSerialized]
+//    public GameObject riggedModel;
+//    protected VolumetricSwitcher switcher;
+
+//    public abstract string GetNames();
+
+//    public virtual void Init(GameObject riggedModel, VolumetricSwitcher switcher)
+//    {
+//        this.riggedModel = riggedModel;
+//        //riggedModel.AddComponent<Animator>();
+//        this.riggedModel = riggedModel;
+//    }
+
+//    public abstract GameObject GetVolumetricObject();
+
+//    public abstract void SwitchMode();
+//}
 
 [Serializable]
-public abstract class BaseActionTransition
+public class Action
 {
-    //protected GameObject riggedModel;
-
-    [NonSerialized]
-    public GameObject riggedModel;
-    protected VolumetricSwitcher switcher;
-
-    public abstract string GetNames();
-
-    public virtual void Init(GameObject riggedModel, VolumetricSwitcher switcher)
-    {
-        this.riggedModel = riggedModel;
-        //riggedModel.AddComponent<Animator>();
-        this.switcher = switcher;
-    }
-
-    public abstract GameObject GetVolumetricObject();
-
-    public abstract void SwitchMode();
-}
-
-[Serializable]
-//[UnityEngine.SerializeReference]
-public class Action : BaseActionTransition
-{
+    [UnityEngine.SerializeReference]
     public GameObject depthkitObject;
-    public double depthkitOffset = 0.0; // Obj.start_time;
-   
+
+    [UnityEngine.SerializeReference]
     public AudioClip voiceover;
     private AudioSource Audio;
-    public float AudioOffset = 0f;
+    [UnityEngine.SerializeReference]
     public AnimationClip Marionette;
 
     private bool isUsingRiggedModel = false;
-
     private float currentTime = 0f;
 
-    public override string GetNames()
-    {
-        return riggedModel != null ? riggedModel.name : "No model";
-    }
+    private VolumetricSwitcher switcher;
+    private GameObject riggedModel;
 
-    public override void Init(GameObject riggedModel, VolumetricSwitcher switcher)
+    public void Init(GameObject riggedModel, VolumetricSwitcher switcher)
     {
-        base.Init(riggedModel, switcher);
+        this.riggedModel = riggedModel;
+        this.switcher = switcher;
     }
 
     public void Activated()
@@ -72,7 +73,7 @@ public class Action : BaseActionTransition
         animator.Update(0f);
     }
     
-    public override void SwitchMode()
+    public void SwitchMode()
     {
         if (isUsingRiggedModel)
         {
@@ -100,8 +101,8 @@ public class Action : BaseActionTransition
             setObjectVisibility(depthkitObject, true);
 
             VideoPlayer depthkitVideoPlayer = depthkitObject.GetComponent<VideoPlayer>();
-            depthkitVideoPlayer.time = (currentTime * state.length) + 0.01; // Fix the inaccuracy from floating point numbers
-            Debug.Log($"Depthkit Time: {(currentTime * state.length) + 0.01}");
+            depthkitVideoPlayer.time = (currentTime * state.length); 
+            Debug.Log($"Depthkit Time: {(currentTime * state.length)}");
             depthkitVideoPlayer.Play();
 
             setObjectVisibility(riggedModel, false);
@@ -117,48 +118,43 @@ public class Action : BaseActionTransition
             r.enabled = visible;
     }
 
-    public override GameObject GetVolumetricObject()
+    public GameObject GetVolumetricObject()
     {
         return depthkitObject;
     }
 }
 
-public class Transition : BaseActionTransition
-{
-    public string transitionName;
-    public AnimationClip walkingMovement;
+//public class Transition : BaseActionTransition
+//{
+//    public string transitionName;
+//    public AnimationClip walkingMovement;
 
-    public override string GetNames()
-    {
-        return riggedModel != null ? riggedModel.name : "No model";
-    }
+//    public override string GetNames()
+//    {
+//        return riggedModel != null ? riggedModel.name : "No model";
+//    }
 
-    public override void Init(GameObject riggedModel, VolumetricSwitcher switcher)
-    {
-        base.Init(riggedModel, switcher);
-    }
+//    public override void Init(GameObject riggedModel, VolumetricSwitcher switcher)
+//    {
+//        base.Init(riggedModel, switcher);
+//    }
 
-    public override GameObject GetVolumetricObject()
-    {
-        return null;
-    }
-    public override void SwitchMode() {}
-}
+//    public override GameObject GetVolumetricObject()
+//    {
+//        return null;
+//    }
+//    public override void SwitchMode() {}
+//}
 
 public class VolumetricSwitcher : MonoBehaviour
 {
-    //private static DepthKitObject Obj = new DepthKitObject();
-    //public GameObject depthkitObject = Obj.depthkitObject;
-    //public GameObject depthkitObject;
-    //public double depthkitOffset = 0.0; // Obj.start_time;
+
     public GameObject riggedModel;
     public double riggedModelOffset = 0.0;
-    //public AudioClip voiceover;
     private AudioSource Audio;
-    //public float AudioOffset = 0f;
 
     [SerializeReference]
-    public List<BaseActionTransition> steps = new List<BaseActionTransition>()
+    public List<Action> exhibitTalks = new List<Action>()
     {
         new Action() // Start with an Action
     };
@@ -166,79 +162,78 @@ public class VolumetricSwitcher : MonoBehaviour
     private bool isUsingRiggedModel;
     private bool finishPlaying = false;
 
-    private bool initialised = false;
-
     private int CurrentStep = 0;
-    private List<Alignments> alignments;
 
-    // Start is called before the first frame update
-    void Start()
+    private List<Alignments> alignments = new List<Alignments>();
+    public bool AssignAlignmentsEveryTime = false;
+
+    public GameObject player;
+    public Camera playerCam;
+
+    private guideStates currentState;
+
+    private void Start()
     {
-        //depthkitObject.GetComponent<VideoPlayer>().time = depthkitOffset;
-        //depthkitObject.GetComponent<VideoPlayer>().Play();
-
-        //AllignObjects();
-        //MatchScale();
-
-
+        SwitchToPlayerMode(false);
+        SwitchState(guideStates.Align);
     }
 
-    private void OnEnable()
-    {
-        // Ensure the first item is always an ActionType
-        if (steps == null || steps.Count == 0 || !(steps[0] is Action))
+    public void SwitchState(guideStates newState) {
+        if (currentState == newState) return;
+
+        currentState = newState;
+
+        switch (currentState)
         {
-            steps = new List<BaseActionTransition> {};
-            BaseActionTransition newStep = new Transition();
-            newStep.Init(riggedModel, this);
-            steps.Add(newStep);
+            case guideStates.Align:
+                MoveModels mover = this.GetComponentInChildren<MoveModels>();
+                if (mover.getInitialised()) { return; }
+
+                List<GameObject> volumetricModels = exhibitTalks.Select(item => item.depthkitObject).ToList();
+                mover.initialise(volumetricModels, riggedModel, alignments, AssignAlignmentsEveryTime);
+                break;
+            case guideStates.Walk:
+                if (alignments.Count == 0 || alignments == null) {
+                    throw new Exception("The alignments have not yet been assigned!");
+                }
+
+                SwitchToPlayerMode(true);
+                
+                Audio = gameObject.AddComponent<AudioSource>();
+                break;
+            case guideStates.Transition:
+                break;
+            case guideStates.Talk:
+                break;
         }
     }
 
-    //void AllignObjects()
-    //{
-    //    depthkitObject.transform.position = riggedModel.transform.position;
-    //    //depthkitObject.transform.rotation = riggedModel.transform.rotation;
-
-    //    Debug.Log($"Rigged Model rotation: {riggedModel.transform.rotation.eulerAngles}, Depthkit object rotation: {depthkitObject.transform.rotation.eulerAngles}");
-    //    Debug.Log($"Rigged Model scale: {riggedModel.transform.localScale}, Depthkit Object scale: {depthkitObject.transform.localScale}");
-    //    Debug.Log($"Rigged Model location: {riggedModel.transform.position}, Depthkit Object location: {depthkitObject.transform.position}");
-    //}
-
-    public void Initialise(List<Alignments> alignments)
+    public void SwitchToPlayerMode(bool enable)
     {
-        this.alignments = alignments;
+        player.SetActive(enable);  // Enables/disables player movement
+        playerCam.gameObject.SetActive(enable);  // Enables/disables the camera
 
-        //if (steps[0].GetVolumetricObject() == null)
-        //    throw new Exception("Initial step must be Action");
-
-        //steps[0].GetVolumetricObject().GetComponent<VideoPlayer>().playOnAwake = false;
-        
-        Audio = gameObject.AddComponent<AudioSource>();
-
-        initialised = true;
-        //SwitchMode();
+        if (enable)
+        {
+            Cursor.lockState = CursorLockMode.Locked; // Lock cursor for FPS movement
+            Cursor.visible = false;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;  // Unlock cursor when not in player mode
+            Cursor.visible = true;
+        }
     }
 
-    // Update is called once per frame
-    void Update() {
-
+    public void SetAlignments(List<Alignments> alignments)
+    {
+        this.alignments = alignments;
     }
 
     public List<Alignments> GetAlignments()
     {
         return alignments;
     }
-
-    //void MatchScale()
-    //{
-    //    // Get bounding box sizes
-    //    Bounds depthkitBounds = GetObjectBounds(depthkitObject);
-    //    Bounds riggedBounds = GetObjectBounds(riggedModel);
-
-    //    float scaleFactor = depthkitBounds.size.y / riggedBounds.size.y; // Match height
-    //    riggedModel.transform.localScale *= scaleFactor;
-    //}
 
     Bounds GetObjectBounds(GameObject obj)
     {
@@ -255,7 +250,10 @@ public class VolumetricSwitcher : MonoBehaviour
 
     public void SwitchMode()
     {
-        steps[CurrentStep].SwitchMode();
+        if (currentState == guideStates.Talk)
+        {
+            exhibitTalks[CurrentStep].SwitchMode();
+        }
     }
 
     public void triggerTransition()
@@ -263,33 +261,24 @@ public class VolumetricSwitcher : MonoBehaviour
         CurrentStep = CurrentStep + 1;
     }
 
-    //public void SwitchMode(Quaternion degrees)
-    //{
-    //    if (!isUsingRiggedModel)
-    //    {
-    //        depthkitObject.transform.rotation = degrees;
-    //    }
-    //    SwitchMode();
-    //}
-
     public bool clipEnded()
     {
         return false; // steps[CurrentStep].riggedModel.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime == 1;
     }
 
-    public GameObject GetRiggedModel()
-    {
-        return steps[CurrentStep].riggedModel;
-    }
+    //public GameObject GetRiggedModel()
+    //{
+    //    return exhibitTalks[CurrentStep].riggedModel;
+    //}
 
     public bool checkIfUsingRiggedModel()
     {
         return isUsingRiggedModel;
     }
 
-    public bool CheckIfInitialised()
+    public guideStates GetState()
     {
-        return initialised;
+        return currentState;
     }
 
     private void setDepthkitTime()

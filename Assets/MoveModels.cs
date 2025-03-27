@@ -21,11 +21,11 @@ public class Alignments
 
 public class MoveModels : MonoBehaviour
 {
-    public List<GameObject> volumetricModels = new List<GameObject>();
-    public GameObject riggedModel; // TODO: Access models in volumetric switcher
-    private List<Alignments> alignmentsList = new List<Alignments>();
+    private List<GameObject> volumetricModels;
+    private GameObject riggedModel; 
+    private List<Alignments> alignmentsList;
 
-    public bool AssignAlignmentsEveryTime = false;
+    private bool AssignAlignmentsEveryTime;
 
     public string saveFileName = "alignments.json";
     private string path => Path.Combine(Application.persistentDataPath, saveFileName);
@@ -33,8 +33,17 @@ public class MoveModels : MonoBehaviour
     private bool showRiggedModel = true;
     private int currentModelNumber = 0;
 
-    void Start()
+    private bool initialised = false;
+
+    public void initialise(List<GameObject> volumetricModels, GameObject riggedModel, List<Alignments> alignmentsList, bool AssignAlignmentsEveryTime)
     {
+        initialised = true;
+
+        this.volumetricModels = volumetricModels;
+        this.riggedModel = riggedModel;
+        this.alignmentsList = alignmentsList;
+        this.AssignAlignmentsEveryTime = AssignAlignmentsEveryTime;
+
         PausePlayback();
         SetVisibility();
         LoadAlignment();
@@ -42,18 +51,24 @@ public class MoveModels : MonoBehaviour
 
     void Update()
     {
+        if (alignmentsList == null) { return; }
+
         // Trigger the volumetric switcher when there is an alignment corresponding to each volumetric model
         if (alignmentsList.Count >= volumetricModels.Count)
         {
             VolumetricSwitcher switcher = FindObjectOfType<VolumetricSwitcher>(); // TODO: Only work with one volumetric switcher
             // Stop Update from calling this a second time or initialising twice
-            StartCoroutine(DisableSelfNextFrame());
+            //StartCoroutine(DisableSelfNextFrame());
             if (!showRiggedModel)
             {
                 showRiggedModel = true;
                 SetVisibility();
             }
-            switcher.Initialise(alignmentsList);
+
+            if (switcher.GetAlignments() == null)
+                switcher.SetAlignments(alignmentsList);
+
+            switcher.SwitchState(guideStates.Walk);
         }
 
         HandleMovement();
@@ -73,9 +88,12 @@ public class MoveModels : MonoBehaviour
             File.WriteAllText(path, JsonUtility.ToJson(wrapper, true));
             Debug.Log("Alignment Saved!");
         }
-        
     }
 
+    public bool getInitialised()
+    {
+        return initialised;
+    }
     private IEnumerator DisableSelfNextFrame()
     {
         yield return new WaitForEndOfFrame(); // or yield return null; for just 1 frame delay
