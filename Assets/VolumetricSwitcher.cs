@@ -6,8 +6,9 @@ using UnityEngine.Video;
 using System;
 using JetBrains.Annotations;
 using System.Linq;
+using UnityEngine.Rendering.HighDefinition;
 
-public enum guideStates { Align, Walk, Transition, Talk }
+public enum guideStates { Align, Walk, Transition, Talk, None }
 
 //[Serializable]
 //public abstract class BaseActionTransition
@@ -38,9 +39,9 @@ public class Action
     [UnityEngine.SerializeReference]
     public GameObject depthkitObject;
 
-    [UnityEngine.SerializeReference]
-    public AudioClip voiceover;
-    private AudioSource Audio;
+    //[UnityEngine.SerializeReference]
+    //public AudioClip voiceover;
+    //private AudioSource Audio;
     [UnityEngine.SerializeReference]
     public AnimationClip Marionette;
 
@@ -58,19 +59,7 @@ public class Action
 
     public void Activated()
     {
-        if (voiceover != null)
-        {
-            switcher.playAudio(voiceover);
-        }
-        else
-        {
-            Debug.LogError("No audio clip assigned!");
-        }
-        
-        var animator = riggedModel.GetComponent<Animator>();
-        animator.enabled = true;
-        animator.speed = 1.0f;
-        animator.Update(0f);
+       
     }
     
     public void SwitchMode()
@@ -87,28 +76,47 @@ public class Action
             setObjectVisibility(riggedModel, true);
             //riggedMovements.enabled = true;
 
+            depthkitObject.GetComponent<AudioSource>().enabled = false;
+
             Animator animator = riggedModel.GetComponent<Animator>();
             var overrideController = new AnimatorOverrideController(animator.runtimeAnimatorController);
             overrideController["Default"] = Marionette;
-            riggedModel.GetComponent<Animator>().Play("Default", 0, normalizedTime);
+            //riggedModel.transform.position = switcher.GetAlignments()[0].riggedModelTransforms.location;
+            //riggedModel.transform.rotation = switcher.GetAlignments()[0].riggedModelTransforms.rotation;
+            //riggedModel.GetComponent<Animator>().CrossFade("museum marionette cropped 5", 0f, 0, 0f);
         }
         else
         {
             AnimatorStateInfo state = riggedModel.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0);
             currentTime = state.normalizedTime;
 
+            riggedModel.GetComponent<Animator>().ResetTrigger("Play Talk 5");
+
             //AllignObjects();
             setObjectVisibility(depthkitObject, true);
 
             VideoPlayer depthkitVideoPlayer = depthkitObject.GetComponent<VideoPlayer>();
-            depthkitVideoPlayer.time = (currentTime * state.length); 
+            playOnTimeSet(depthkitVideoPlayer, (currentTime * state.length));
             Debug.Log($"Depthkit Time: {(currentTime * state.length)}");
             depthkitVideoPlayer.Play();
+            depthkitObject.GetComponent<AudioSource>().enabled = true;
 
             setObjectVisibility(riggedModel, false);
         }
 
         isUsingRiggedModel = !isUsingRiggedModel;
+    }
+
+    IEnumerator playOnTimeSet(VideoPlayer depthkitClip, float newTime)
+    {
+        depthkitClip.Pause();
+        depthkitClip.time = newTime;
+
+        // Wait until time is close enough (float comparisons)
+        while (Mathf.Abs((float) depthkitClip.time - newTime) > 0.01f)
+            yield return null;
+
+        depthkitClip.Play();
     }
 
     private void setObjectVisibility(GameObject model, bool visible)
@@ -153,7 +161,6 @@ public class VolumetricSwitcher : MonoBehaviour
     public double riggedModelOffset = 0.0;
     private AudioSource Audio;
 
-    [SerializeReference]
     public List<Action> exhibitTalks = new List<Action>()
     {
         new Action() // Start with an Action
@@ -167,13 +174,20 @@ public class VolumetricSwitcher : MonoBehaviour
     private List<Alignments> alignments = new List<Alignments>();
     public bool AssignAlignmentsEveryTime = false;
 
+    public Material decalMaterial;
+    private List<GameObject> decals = new List<GameObject>();
+
     public GameObject player;
     public Camera playerCam;
+    //public Camera MainCam;
 
-    private guideStates currentState;
+    private guideStates currentState = guideStates.None;
+    public float proximityToSwitch = 1.0f;
 
     private void Start()
     {
+        //Audio = gameObject.AddComponent<AudioSource>();
+        
         SwitchToPlayerMode(false);
         SwitchState(guideStates.Align);
     }
@@ -190,21 +204,73 @@ public class VolumetricSwitcher : MonoBehaviour
                 if (mover.getInitialised()) { return; }
 
                 List<GameObject> volumetricModels = exhibitTalks.Select(item => item.depthkitObject).ToList();
-                mover.initialise(volumetricModels, riggedModel, alignments, AssignAlignmentsEveryTime);
+                List<String> movementNames = exhibitTalks.Select(item => item.Marionette.name).ToList();
+                mover.initialise(volumetricModels, movementNames, riggedModel, alignments, AssignAlignmentsEveryTime);
                 break;
             case guideStates.Walk:
                 if (alignments.Count == 0 || alignments == null) {
                     throw new Exception("The alignments have not yet been assigned!");
                 }
 
+                //riggedModel.transform.position = player.transform.position;
+
+                // Disable the hitbox for each volumetric video
+                foreach (GameObject model in exhibitTalks.Select(item => item.depthkitObject).ToList())
+                {
+                    model.GetComponent<BoxCollider>().enabled = false;
+                }
+        
+                var animator = riggedModel.GetComponent<Animator>();
+                animator.enabled = true;
+                animator.speed = 1.0f;
+                ResetAllTriggers();
+                animator.SetTrigger("Switch To Idle");
+                animator.Update(0f);
+
                 SwitchToPlayerMode(true);
+                CreateCircles();
                 
-                Audio = gameObject.AddComponent<AudioSource>();
                 break;
             case guideStates.Transition:
                 break;
             case guideStates.Talk:
+                foreach (var talk in exhibitTalks) {
+                    talk.Init(riggedModel, this);
+                }
                 break;
+        }
+    }
+
+    private void ResetAllTriggers ()
+    {
+        for (int i = 1; i <= 5; i++) // ToDo: Make it able to tell number of talk states
+        {
+            riggedModel.GetComponent<Animator>().ResetTrigger("Play Talk 5");
+        }
+    }
+
+    private void CreateCircles()
+    {
+        foreach (var alignment in alignments)
+        {
+            GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Vector3 quadLocation = new Vector3(alignment.riggedModelTransforms.location.x, 0.1f, alignment.riggedModelTransforms.location.z);
+            quad.transform.position = quadLocation;
+            quad.transform.rotation = Quaternion.Euler(90, 0, 0); // Face upwards
+            quad.transform.localScale = new Vector3(proximityToSwitch * 2f, proximityToSwitch *2f, 1.0f);
+            
+            quad.GetComponent<MeshCollider>().enabled = false;
+
+            if (decalMaterial != null)
+            {
+                quad.GetComponent<MeshRenderer>().material = decalMaterial;
+            }
+            else
+            {
+                Debug.LogWarning("Red circle material not assigned!");
+            }
+
+            decals.Add(quad);
         }
     }
 
@@ -212,6 +278,12 @@ public class VolumetricSwitcher : MonoBehaviour
     {
         player.SetActive(enable);  // Enables/disables player movement
         playerCam.gameObject.SetActive(enable);  // Enables/disables the camera
+        //MainCam.gameObject.SetActive(!enable);
+
+        for (int i = 0; i < alignments.Count; i++)
+        {
+            exhibitTalks[i].depthkitObject.transform.position = alignments[i].volumetricModelTransforms.location;
+        } 
 
         if (enable)
         {
@@ -312,6 +384,16 @@ public class VolumetricSwitcher : MonoBehaviour
 
             yield return new WaitForSeconds(Audio.clip.length); // add - AudioOffset
         }
+    }
+
+    internal float GetProximityToSwitch()
+    {
+        return proximityToSwitch;
+    }
+
+    internal PlayerMovement getPlayer()
+    {
+        return player.GetComponent<PlayerMovement>();
     }
 }
 

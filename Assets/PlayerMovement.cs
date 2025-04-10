@@ -74,4 +74,11 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
         }
     }
+    
+    public float distanceToObject(Vector3 location)
+    {
+        Vector3 player = new Vector3(rb.transform.position.x, 0, rb.transform.position.z);
+        Vector3 obj = new Vector3(location.x, 0, location.z);
+        return Vector3.Distance(player, obj);
+    }
 }

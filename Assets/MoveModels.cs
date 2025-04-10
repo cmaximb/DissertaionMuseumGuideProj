@@ -24,9 +24,10 @@ public class MoveModels : MonoBehaviour
     private List<GameObject> volumetricModels;
     private GameObject riggedModel; 
     private List<Alignments> alignmentsList;
+    private List<string> movementNames;
 
     private bool AssignAlignmentsEveryTime;
-
+    
     public string saveFileName = "alignments.json";
     private string path => Path.Combine(Application.persistentDataPath, saveFileName);
 
@@ -34,8 +35,14 @@ public class MoveModels : MonoBehaviour
     private int currentModelNumber = 0;
 
     private bool initialised = false;
+    private bool finished = false;
 
-    public void initialise(List<GameObject> volumetricModels, GameObject riggedModel, List<Alignments> alignmentsList, bool AssignAlignmentsEveryTime)
+    public Camera alignmentCamera;
+    private static Vector3 cameraOffset = new Vector3(0.0f, 2.0f, -5.0f);
+
+    private GameObject player;
+
+    public void initialise(List<GameObject> volumetricModels, List<String> movementNames, GameObject riggedModel, List<Alignments> alignmentsList, bool AssignAlignmentsEveryTime)
     {
         initialised = true;
 
@@ -43,6 +50,9 @@ public class MoveModels : MonoBehaviour
         this.riggedModel = riggedModel;
         this.alignmentsList = alignmentsList;
         this.AssignAlignmentsEveryTime = AssignAlignmentsEveryTime;
+        this.movementNames = movementNames;
+
+        alignmentCamera.gameObject.SetActive(true);
 
         PausePlayback();
         SetVisibility();
@@ -51,11 +61,12 @@ public class MoveModels : MonoBehaviour
 
     void Update()
     {
-        if (alignmentsList == null) { return; }
+        if (alignmentsList == null || finished) { return; }
 
         // Trigger the volumetric switcher when there is an alignment corresponding to each volumetric model
         if (alignmentsList.Count >= volumetricModels.Count)
         {
+            finished = true;
             VolumetricSwitcher switcher = FindObjectOfType<VolumetricSwitcher>(); // TODO: Only work with one volumetric switcher
             // Stop Update from calling this a second time or initialising twice
             //StartCoroutine(DisableSelfNextFrame());
@@ -68,7 +79,12 @@ public class MoveModels : MonoBehaviour
             if (switcher.GetAlignments() == null)
                 switcher.SetAlignments(alignmentsList);
 
+            alignmentCamera.gameObject.SetActive(false);
+
+            riggedModel.transform.position = switcher.getPlayer().transform.position;
+
             switcher.SwitchState(guideStates.Walk);
+            this.enabled = false;
         }
 
         HandleMovement();
@@ -78,6 +94,8 @@ public class MoveModels : MonoBehaviour
             showRiggedModel = !showRiggedModel;
             SetVisibility();
         }
+        
+        LockCamera();
 
         if (Input.GetKeyDown(KeyCode.Return) && (alignmentsList.Count < volumetricModels.Count))
         {
@@ -87,6 +105,26 @@ public class MoveModels : MonoBehaviour
             wrapper.alignments = alignmentsList;
             File.WriteAllText(path, JsonUtility.ToJson(wrapper, true));
             Debug.Log("Alignment Saved!");
+
+            currentModelNumber += 1;
+            if (movementNames.Count > currentModelNumber)
+            {
+                PauseRiggedModel(movementNames[currentModelNumber]);
+            }
+        }
+    }
+
+    private void LockCamera()
+    {
+        if (alignmentCamera == null) { return; }
+
+        if (showRiggedModel)
+        {
+            alignmentCamera.transform.position = riggedModel.transform.position + cameraOffset ;
+        }
+        else
+        {
+            alignmentCamera.transform.position = volumetricModels[currentModelNumber].transform.position + cameraOffset;
         }
     }
 
@@ -185,6 +223,7 @@ public class MoveModels : MonoBehaviour
                 player.playOnAwake = false;
                 //player.time = FindObjectOfType<VolumetricSwitcher>().getDepthkitOffset(); 
                 player.Pause();
+                v.GetComponent<AudioSource>().enabled = false;
             }
             catch
             {
@@ -192,19 +231,28 @@ public class MoveModels : MonoBehaviour
             }
         }
 
+        PauseRiggedModel(movementNames[0]);
+    }
+
+    private void PauseRiggedModel(string movementName)
+    {
         var animator = riggedModel.GetComponent<Animator>();
+
         if (animator != null)
         {
             //animator.enabled = false;
+            animator.CrossFade(movementName, 0f);
             animator.speed = 0f;
             AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
             //float startingTime = (float)FindObjectOfType<VolumetricSwitcher>().getRiggedOffset();
-            animator.Play("museum talk 1", 0, 0); // startingTime / state.length);
+            //Play("museum talk 1", 0, 0); // startingTime / state.length);
             animator.Update(0f);
             Debug.Log(animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
         }
         else
             Debug.LogError("Model must have animator attached");
+        
+        riggedModel.transform.position = volumetricModels[0].transform.position;
     }
 
     private void HandleMovement()
@@ -223,7 +271,7 @@ public class MoveModels : MonoBehaviour
         if (Input.GetKey(KeyCode.D))
             currentModel.transform.position += Vector3.right * moveSpeed;
         if (Input.GetKey(KeyCode.S))
-            currentModel.transform.position += Vector3.down * moveSpeed;
+            currentModel.transform.position += Vector3.back * moveSpeed;
 
         if (Input.GetKey(KeyCode.LeftArrow))
             currentModel.transform.Rotate(Vector3.up, -rotateSpeed);

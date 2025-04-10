@@ -18,17 +18,18 @@ public class RiggedGuide : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         movement = GetComponent<Animator>();
 
-        enableMoving();
+        //enableMoving();
     }
 
     public void enableMoving()
     {
-        Animator movement = GetComponent<Animator>();
+        movement = GetComponent<Animator>();
         movement.enabled = true;
         movement.speed = 1.0f;
         movement.Update(0f);
     }
 
+    // Called on every frame (when walking)
     public void followPlayer()
     {
         if (player == null) return;
@@ -53,10 +54,16 @@ public class RiggedGuide : MonoBehaviour
         }
     }
 
+    // Called once (then rigged model walks to location)
     public void walkToLocation(Vector3 location)
     {
         agent.SetDestination(location);
-        movement.SetFloat("Speed", agent.velocity.magnitude);
+
+        //Vector3 target = agent.steeringTarget;
+        //Vector3 direction = (target - transform.position).normalized;
+        //Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+
+        movement.SetFloat("Speed", 1.0f);
     }
 
     public float distanceToObject(Vector3 location)
