@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -69,5 +70,10 @@ public class RiggedGuide : MonoBehaviour
     public float distanceToObject(Vector3 location)
     {
         return Vector3.Distance(transform.position, location);
+    }
+
+    internal void rotateStationary(Quaternion rotation, Quaternion targetRotation, float speed)
+    {
+        this.transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, speed * Time.deltaTime);
     }
 }

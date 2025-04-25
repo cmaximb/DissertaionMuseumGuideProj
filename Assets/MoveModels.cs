@@ -17,6 +17,7 @@ public class Alignments
 {
     public TransformModel volumetricModelTransforms;
     public TransformModel riggedModelTransforms;
+    public String name;
 }
 
 public class MoveModels : MonoBehaviour
@@ -24,10 +25,9 @@ public class MoveModels : MonoBehaviour
     private List<GameObject> volumetricModels;
     private GameObject riggedModel; 
     private List<Alignments> alignmentsList;
-    private List<string> movementNames;
 
     private bool AssignAlignmentsEveryTime;
-    
+    private List<string> movementNames;
     public string saveFileName = "alignments.json";
     private string path => Path.Combine(Application.persistentDataPath, saveFileName);
 
@@ -82,6 +82,7 @@ public class MoveModels : MonoBehaviour
             alignmentCamera.gameObject.SetActive(false);
 
             riggedModel.transform.position = switcher.getPlayer().transform.position;
+            switcher.SwitchToPlayerMode(true);
 
             switcher.SwitchState(guideStates.Walk);
             this.enabled = false;
@@ -107,9 +108,9 @@ public class MoveModels : MonoBehaviour
             Debug.Log("Alignment Saved!");
 
             currentModelNumber += 1;
-            if (movementNames.Count > currentModelNumber)
+            if (alignmentsList.Count > currentModelNumber)
             {
-                PauseRiggedModel(movementNames[currentModelNumber]);
+                PauseRiggedModel(alignmentsList[currentModelNumber].name);
             }
         }
     }
@@ -161,6 +162,8 @@ public class MoveModels : MonoBehaviour
             };
         }
         else throw new Exception("No rigged model currently assigned!");
+
+        data.name = movementNames[currentModelNumber];
 
         alignmentsList.Add(data);
     }

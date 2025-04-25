@@ -4656,6 +4656,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: talk1 synced
       objectReference: {fileID: 0}
+    - target: {fileID: 827691868226792063, guid: 861d474b1330f854aae0ec76810d8e8a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2895700389719129406, guid: 861d474b1330f854aae0ec76810d8e8a,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -5161,19 +5166,13 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 861d474b1330f854aae0ec76810d8e8a, type: 3}
---- !u!1 &440037667 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 827691868226792063, guid: 861d474b1330f854aae0ec76810d8e8a,
-    type: 3}
-  m_PrefabInstance: {fileID: 440037666}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &440037668 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8781839235707920857, guid: 861d474b1330f854aae0ec76810d8e8a,
     type: 3}
   m_PrefabInstance: {fileID: 440037666}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 440037667}
+  m_GameObject: {fileID: 691873015}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b4fa781ea55830e408ba83c0f9d07c4b, type: 3}
@@ -6516,6 +6515,12 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 675332708}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &691873015 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 827691868226792063, guid: 861d474b1330f854aae0ec76810d8e8a,
+    type: 3}
+  m_PrefabInstance: {fileID: 440037666}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &697368304
 GameObject:
   m_ObjectHideFlags: 0
@@ -8083,6 +8088,11 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 942e7232de5775f4d94ce5c5b0beaa4b, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 54ce411d9d6920f4082d7e7ef64f60b5,
+        type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10305,13 +10315,13 @@ MonoBehaviour:
   riggedModel: {fileID: 2082083084}
   riggedModelOffset: 0
   exhibitTalks:
-  - depthkitObject: {fileID: 440037667}
-    Marionette: {fileID: 8743076602435307373, guid: 9a8cc237e6cbf3141b3776f10a09d5c5,
-      type: 3}
   - depthkitObject: {fileID: 1901194531}
     Marionette: {fileID: 8609224782235196004, guid: 3ad36e059eb22f542b00fe75c7568c76,
       type: 3}
-  AssignAlignmentsEveryTime: 0
+  - depthkitObject: {fileID: 691873015}
+    Marionette: {fileID: 8743076602435307373, guid: 9a8cc237e6cbf3141b3776f10a09d5c5,
+      type: 3}
+  AssignAlignmentsEveryTime: 1
   decalMaterial: {fileID: 2100000, guid: 73e2ed6a43c80db4cad6042a534f3522, type: 2}
   player: {fileID: 92128255}
   playerCam: {fileID: 1729352831}
@@ -11763,11 +11773,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: talk4 synced
       objectReference: {fileID: 0}
+    - target: {fileID: 1054994034703951445, guid: 6cf4821b7021eed4f83ec38708fa8cb7,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1111797352101206526, guid: 6cf4821b7021eed4f83ec38708fa8cb7,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 105136686}
+    - target: {fileID: 1697060259317755244, guid: 6cf4821b7021eed4f83ec38708fa8cb7,
+        type: 3}
+      propertyPath: m_Looping
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3312118300890591508, guid: 6cf4821b7021eed4f83ec38708fa8cb7,
         type: 3}
       propertyPath: m_LocalPosition.x

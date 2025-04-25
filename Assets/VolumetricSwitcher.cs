@@ -48,13 +48,11 @@ public class Action
     private bool isUsingRiggedModel = false;
     private float currentTime = 0f;
 
-    private VolumetricSwitcher switcher;
     private GameObject riggedModel;
 
-    public void Init(GameObject riggedModel, VolumetricSwitcher switcher)
+    public void Init(GameObject riggedModel)
     {
         this.riggedModel = riggedModel;
-        this.switcher = switcher;
     }
 
     public void Activated()
@@ -78,19 +76,17 @@ public class Action
 
             depthkitObject.GetComponent<AudioSource>().enabled = false;
 
-            Animator animator = riggedModel.GetComponent<Animator>();
-            var overrideController = new AnimatorOverrideController(animator.runtimeAnimatorController);
-            overrideController["Default"] = Marionette;
+            //Animator animator = riggedModel.GetComponent<Animator>();
+            //var overrideController = new AnimatorOverrideController(animator.runtimeAnimatorController);
+            //overrideController["Default"] = Marionette;
             //riggedModel.transform.position = switcher.GetAlignments()[0].riggedModelTransforms.location;
             //riggedModel.transform.rotation = switcher.GetAlignments()[0].riggedModelTransforms.rotation;
-            //riggedModel.GetComponent<Animator>().CrossFade("museum marionette cropped 5", 0f, 0, 0f);
+            //riggedModel.GetComponent<Animator>().CrossFade("museum marionette cropped 4", 0f, 0, normalizedTime);
         }
         else
         {
             AnimatorStateInfo state = riggedModel.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0);
             currentTime = state.normalizedTime;
-
-            riggedModel.GetComponent<Animator>().ResetTrigger("Play Talk 5");
 
             //AllignObjects();
             setObjectVisibility(depthkitObject, true);
@@ -225,18 +221,21 @@ public class VolumetricSwitcher : MonoBehaviour
                 animator.speed = 1.0f;
                 ResetAllTriggers();
                 animator.SetTrigger("Switch To Idle");
+                animator.CrossFade("idle", 0.01f, 0, 0.0f);
                 animator.Update(0f);
 
-                SwitchToPlayerMode(true);
-                CreateCircles();
+                EnableCircles();
                 
                 break;
             case guideStates.Transition:
                 break;
             case guideStates.Talk:
                 foreach (var talk in exhibitTalks) {
-                    talk.Init(riggedModel, this);
+                    talk.Init(riggedModel);
                 }
+
+                DisableCircles();
+
                 break;
         }
     }
@@ -245,19 +244,30 @@ public class VolumetricSwitcher : MonoBehaviour
     {
         for (int i = 1; i <= 5; i++) // ToDo: Make it able to tell number of talk states
         {
-            riggedModel.GetComponent<Animator>().ResetTrigger("Play Talk 5");
+            riggedModel.GetComponent<Animator>().ResetTrigger($"Play Talk {i}");
         }
     }
 
-    private void CreateCircles()
+    private void EnableCircles()
     {
+        if (decals.Count > 0)
+        {
+            foreach (var decal in decals)
+            {
+                var renderer = decal.GetComponent<Renderer>();
+                renderer.enabled = true;
+            }
+
+            return;
+        }
+
         foreach (var alignment in alignments)
         {
             GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
             Vector3 quadLocation = new Vector3(alignment.riggedModelTransforms.location.x, 0.1f, alignment.riggedModelTransforms.location.z);
             quad.transform.position = quadLocation;
             quad.transform.rotation = Quaternion.Euler(90, 0, 0); // Face upwards
-            quad.transform.localScale = new Vector3(proximityToSwitch * 2f, proximityToSwitch *2f, 1.0f);
+            quad.transform.localScale = new Vector3(proximityToSwitch * 2f, proximityToSwitch * 2f, 1.0f);
             
             quad.GetComponent<MeshCollider>().enabled = false;
 
@@ -271,6 +281,15 @@ public class VolumetricSwitcher : MonoBehaviour
             }
 
             decals.Add(quad);
+        }
+    }
+
+    private void DisableCircles()
+    {
+        foreach (var decal in decals)
+        {
+            var renderer = decal.GetComponent<Renderer>();
+            renderer.enabled = false;
         }
     }
 
@@ -320,11 +339,11 @@ public class VolumetricSwitcher : MonoBehaviour
         return bounds;
     }
 
-    public void SwitchMode()
+    public void SwitchMode(int index)
     {
         if (currentState == guideStates.Talk)
         {
-            exhibitTalks[CurrentStep].SwitchMode();
+            exhibitTalks[index].SwitchMode();
         }
     }
 
