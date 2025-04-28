@@ -4,7 +4,7 @@ The following is a guide for both a demonstratory executable and the source code
 
 ## Executable
 
-The executable is generated from a setup including two rigs (perhaps less for smaller file executable). The "always assign alignments" boolean is set to true, so the alignment phase will be included every time the executable is run. The other inspector values are as follows:
+The executable is generated from a setup including one rig (due to limitations with file size). The "always assign alignments" boolean is set to true, so the alignment phase will be included every time the executable is run. The other inspector values are as follows:
 
 - Proximity to switch: Set to 3.
 - Rigged Model Follow speed: Set to 2.
