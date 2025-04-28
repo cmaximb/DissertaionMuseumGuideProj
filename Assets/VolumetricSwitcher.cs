@@ -53,7 +53,7 @@ public class Action
             //overrideController["Default"] = Marionette;
             //riggedModel.transform.position = switcher.GetAlignments()[0].riggedModelTransforms.location;
             //riggedModel.transform.rotation = switcher.GetAlignments()[0].riggedModelTransforms.rotation;
-            //riggedModel.GetComponent<Animator>().CrossFade("museum marionette cropped 4", 0f, 0, normalizedTime);
+            //riggedModel.GetComponent<Animator>().CrossFade(newState, 0f, 0, normalizedTime);
         }
         else
         {
@@ -86,7 +86,7 @@ public class Action
         depthkitClip.time = newTime;
 
         // Wait until time is close enough with margin of error for float conversion
-        while (Mathf.Abs((float) depthkitClip.time - newTime) > 0.01f)
+        while (Mathf.Abs((float) depthkitClip.time - newTime) > 0.1f)
             yield return null;
 
         depthkitClip.Play();

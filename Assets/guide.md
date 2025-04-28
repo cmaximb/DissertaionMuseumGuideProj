@@ -4,12 +4,12 @@ The following is a guide for both a demonstratory executable and the source code
 
 ## Executable
 
-The executable is generated from a setup including two rigs. The "always assign alignments" boolean is set to true, so the alignment phase will be included every time the executable is run. The other inspector values are as follows:
+The executable is generated from a setup including two rigs (perhaps less for smaller file executable). The "always assign alignments" boolean is set to true, so the alignment phase will be included every time the executable is run. The other inspector values are as follows:
 
 - Proximity to switch: Set to 3.
 - Rigged Model Follow speed: Set to 2.
 - Rigged Model Rotation speed: Set to 5.
-- Rigged Model Stopping distance: Set to 4.
+- Rigged Model Stopping distance: Set to 2.5.
 
 Running the executable will first use the alignment phase for both talks. Then, the user enters the game scene, where they may navigate the environment. Red circles will appear at each talk location. Entering these thresholds will play a demonstratory volumetric video talk. Walking out of the threshold will convert the avatar back to its rigged form, where it will continue to follow the player.
 
@@ -19,7 +19,7 @@ Controls are as follows:
 - Arrow keys rotate the volumetric video
 - Enter to approve a set of alignments
 
-It is important to also note that one visual element of the system which could be improved is no feedback for pressing enter in alignment mode on a rigged model. When enter is pressed, the rigged model can then be used to specify the next set of alignments, however nothing will have appeared to of happened if enter was pressed while the rigged model was still visible. This can easily lead to misalignment unless the user is aware that this has happened.
+The switch to the next set of alignment models can be seen by the next pair always starting with the volumetric video frame, each time enter is pressed. When running in the Unity scene view, text will be outputted to the log window in the console which shows that the next pair of alignments should be specified.
 
 **Note: Due to file size limitations, the executable may be uploaded to github instead.**
 
@@ -51,3 +51,5 @@ The Decal Material should already be set to the red circle material provided. Th
 - Player movement to the player container, and all relevant scripts/ fields inside.
 
 Each object should be placed under the Volumetric switcher container, as shown in the paper associated with this project. A NavMesh Surface should be generated for the environment chosen.
+
+**github repository:** https://github.com/cmaximb/DissertaionMuseumGuideProj

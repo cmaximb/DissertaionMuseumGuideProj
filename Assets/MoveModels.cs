@@ -126,8 +126,10 @@ public class MoveModels : MonoBehaviour
                 // Rigged model has to be paused on every increment in talk alignments otherwise moves
                 PauseRiggedModel(alignmentsList[currentModelNumber].name);
             }
-
-            showRiggedModel = true;
+            
+            // Always start following phase as rigged model
+            showRiggedModel = false;
+            SetVisibility();
         }
     }
 
