@@ -45,12 +45,13 @@ public class SwitchingCondition : MonoBehaviour
             alignments = switcher.GetAlignments();
         }
        
+        // Walk state -> follows the player
         if (switcher.GetState() == guideStates.Walk)
         {
             guide.followPlayer();
         }
 
-        int i = 0;
+        int vol_index = 0;
 
         foreach (Alignments alignment in alignments)
         {
@@ -72,7 +73,7 @@ public class SwitchingCondition : MonoBehaviour
                 // Update buffer containing current talk name, so the right motion is triggered
                 currentTalkName = alignment.name;
                 // Change the reference to know which element in the list of volumetric videos needs to be switched
-                alignmentReference = i;
+                alignmentReference = vol_index;
 
                 // Stop all coroutines then start sequence for guide to transition to talk
                 StopAllCoroutines();
@@ -81,7 +82,7 @@ public class SwitchingCondition : MonoBehaviour
                 break;
             }
 
-            i++;
+            vol_index++;
         }
 
         // Activates when the player leaves the proximity of the talk
@@ -101,6 +102,7 @@ public class SwitchingCondition : MonoBehaviour
     {
         guide.walkToLocation(currentTalkLocation);
 
+        // Wait until walked to right place
         while (agent.pathPending || agent.remainingDistance > 0.01)
         {
             yield return null;
@@ -117,7 +119,6 @@ public class SwitchingCondition : MonoBehaviour
         float deltaY = Mathf.DeltaAngle(currentY, targetY);
 
         Animator animator = riggedmodel.GetComponent<Animator>();
-        //animator.SetFloat("Speed", 0);
         agent.ResetPath();
 
         // Get state info
@@ -138,6 +139,7 @@ public class SwitchingCondition : MonoBehaviour
 
         animator.Update(0);
 
+        // Check in animator state to rotate
         while (stateInfo.IsName("left") || stateInfo.IsName("right"))
         {
             yield return null;
@@ -146,6 +148,7 @@ public class SwitchingCondition : MonoBehaviour
         animator.SetBool("TurningLeft", false);
         animator.SetBool("TurningRight", false);
 
+        // Rotate on every frame
         while (Quaternion.Angle(riggedmodel.transform.rotation, targetRotation) > 0.5f) 
         {
             guide.rotateStationary(transform.rotation, targetRotation, TURN_SPEED);

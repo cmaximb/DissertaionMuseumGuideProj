@@ -5,6 +5,7 @@ using System.IO;
 using UnityEngine.Video;
 using System;
 
+// Object for containing transform
 [System.Serializable]
 public class TransformModel
 {
@@ -12,6 +13,7 @@ public class TransformModel
     public Quaternion rotation;
 }
 
+// Object containing transforms for both the models and the marionette capture name
 [System.Serializable]
 public class Alignments
 {
@@ -20,6 +22,7 @@ public class Alignments
     public String name;
 }
 
+// alignment phase
 public class MoveModels : MonoBehaviour
 {
     private List<GameObject> volumetricModels;
@@ -40,8 +43,7 @@ public class MoveModels : MonoBehaviour
     public Camera alignmentCamera;
     private static Vector3 cameraOffset = new Vector3(0.0f, 2.0f, -5.0f);
 
-    private GameObject player;
-
+    // Get information from inspector chosen by user
     public void initialise(List<GameObject> volumetricModels, List<String> movementNames, GameObject riggedModel, List<Alignments> alignmentsList, bool AssignAlignmentsEveryTime)
     {
         initialised = true;
@@ -54,6 +56,7 @@ public class MoveModels : MonoBehaviour
 
         alignmentCamera.gameObject.SetActive(true);
 
+        // Pause the object playback >> Hide unseen models >> load previous alignments
         PausePlayback();
         SetVisibility();
         LoadAlignment();
@@ -61,43 +64,52 @@ public class MoveModels : MonoBehaviour
 
     void Update()
     {
+        // Don't trigger until alignments loaded
         if (alignmentsList == null || finished) { return; }
 
         // Trigger the volumetric switcher when there is an alignment corresponding to each volumetric model
         if (alignmentsList.Count >= volumetricModels.Count)
         {
             finished = true;
-            VolumetricSwitcher switcher = FindObjectOfType<VolumetricSwitcher>(); // TODO: Only work with one volumetric switcher
+            VolumetricSwitcher switcher = FindObjectOfType<VolumetricSwitcher>();
+
             // Stop Update from calling this a second time or initialising twice
-            //StartCoroutine(DisableSelfNextFrame());
             if (!showRiggedModel)
             {
                 showRiggedModel = true;
                 SetVisibility();
             }
 
+            // In case VolumetricSwitcher does not have an alignments list
             if (switcher.GetAlignments() == null)
                 switcher.SetAlignments(alignmentsList);
 
+            // Disable camera from being seen ouut of
             alignmentCamera.gameObject.SetActive(false);
 
+            // Rigged model should start roughly where volumetric video is for user experience
             riggedModel.transform.position = switcher.getPlayer().transform.position;
             switcher.SwitchToPlayerMode(true);
 
+            // Stop accidental further triggers of this method
             switcher.SwitchState(guideStates.Walk);
             this.enabled = false;
         }
 
+        // Movement inputs must be measured in an update function
         HandleMovement();
 
+        // Switch visible model from the current phase of talk alignments
         if (Input.GetKeyDown(KeyCode.Space))
         {
             showRiggedModel = !showRiggedModel;
             SetVisibility();
         }
         
+        // Move camera to get constant view of both models
         LockCamera();
 
+        // When user is satisfied with an alignment pairing
         if (Input.GetKeyDown(KeyCode.Return) && (alignmentsList.Count < volumetricModels.Count))
         {
             // Each time alignment is confirmed, a new jsondocument is created to save the list of alignments
@@ -107,14 +119,19 @@ public class MoveModels : MonoBehaviour
             File.WriteAllText(path, JsonUtility.ToJson(wrapper, true));
             Debug.Log("Alignment Saved!");
 
+            // Check if all alignments set
             currentModelNumber += 1;
             if (alignmentsList.Count > currentModelNumber)
             {
+                // Rigged model has to be paused on every increment in talk alignments otherwise moves
                 PauseRiggedModel(alignmentsList[currentModelNumber].name);
             }
+
+            showRiggedModel = true;
         }
     }
 
+    // Update camera to match the model
     private void LockCamera()
     {
         if (alignmentCamera == null) { return; }
@@ -129,20 +146,18 @@ public class MoveModels : MonoBehaviour
         }
     }
 
+    // Check if started
     public bool getInitialised()
     {
         return initialised;
     }
-    private IEnumerator DisableSelfNextFrame()
-    {
-        yield return new WaitForEndOfFrame(); // or yield return null; for just 1 frame delay
-        this.gameObject.SetActive(false);
-    }
 
+    // Save alignments to a JSON file
     private void SaveAlignmentData()
     {
         Alignments data = new Alignments();
 
+        // Assign volumetric model
         if (volumetricModels[currentModelNumber] != null)
         {
             data.volumetricModelTransforms = new TransformModel
@@ -153,6 +168,7 @@ public class MoveModels : MonoBehaviour
         }
         else throw new Exception("No volumetric model currently assigned!");
 
+        // Assign rigged model
         if (riggedModel != null)
         {
             data.riggedModelTransforms = new TransformModel
@@ -163,19 +179,25 @@ public class MoveModels : MonoBehaviour
         }
         else throw new Exception("No rigged model currently assigned!");
 
+        // Assign name
         data.name = movementNames[currentModelNumber];
 
+        // All contained in one object, added to list of alignments
         alignmentsList.Add(data);
     }
     
+    // Load any preexisting alignments for the currently allocated talks
     private void LoadAlignment()
     {
+        // Don't load alignments if they don't exist or user wants to assign new ones
         if (!File.Exists(path) || AssignAlignmentsEveryTime) return;
 
+        // Parse JSON file
         string json = File.ReadAllText(path);
         AlignmentsWrapper wrapper = JsonUtility.FromJson<AlignmentsWrapper>(json);
         List<Alignments> alignments = wrapper.alignments;
 
+        // Transfer all alignments saved in JSON document to alignments and volumetric models
         int i = 0;
         foreach (Alignments alignment in alignments) {
             alignmentsList.Add(alignment);
@@ -187,19 +209,19 @@ public class MoveModels : MonoBehaviour
             i++;
         }
 
-        Debug.Log(alignments.Count);
+        // Set initial configuration for rigged model
         riggedModel.transform.position = alignments[currentModelNumber].riggedModelTransforms.location;
         riggedModel.transform.rotation = alignments[currentModelNumber].riggedModelTransforms.rotation;
     }
 
+    // Toggles both game objects' renderers
     private void SetVisibility()
     {
         var riggedRenderers = riggedModel.GetComponentsInChildren<Renderer>();
         foreach (var r in riggedRenderers)
             r.enabled = showRiggedModel;
 
-        //riggedModel.SetActive(showRiggedModel);?
-
+        // Find the appropriate volumetric video
         for (int i = 0; i < volumetricModels.Count; i++)
         {
             var volumetricRenderers = volumetricModels[i].GetComponentsInChildren<Renderer>();
@@ -207,15 +229,14 @@ public class MoveModels : MonoBehaviour
             {
                 // Active only the current volumetric model if in volumetric mode
                 if (i != currentModelNumber)
-                r.enabled = false;
-                //volumetricModels[i].SetActive(false);
+                    r.enabled = false;
                 else
                     r.enabled = !showRiggedModel;
-                //volumetricModels[i].SetActive(!showRiggedModel);
             }
         }    
     }
 
+    // Pause both types of model
     private void PausePlayback()
     {
         foreach (var v in volumetricModels)
@@ -224,7 +245,6 @@ public class MoveModels : MonoBehaviour
             {
                 VideoPlayer player = v.GetComponent<VideoPlayer>();
                 player.playOnAwake = false;
-                //player.time = FindObjectOfType<VolumetricSwitcher>().getDepthkitOffset(); 
                 player.Pause();
                 v.GetComponent<AudioSource>().enabled = false;
             }
@@ -234,39 +254,41 @@ public class MoveModels : MonoBehaviour
             }
         }
 
+        // Pause the specific rigged model currently used
         PauseRiggedModel(movementNames[0]);
     }
 
+    // Pause specific rigged model
     private void PauseRiggedModel(string movementName)
     {
         var animator = riggedModel.GetComponent<Animator>();
 
         if (animator != null)
         {
-            //animator.enabled = false;
             animator.CrossFade(movementName, 0f);
             animator.speed = 0f;
-            AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
-            //float startingTime = (float)FindObjectOfType<VolumetricSwitcher>().getRiggedOffset();
-            //Play("museum talk 1", 0, 0); // startingTime / state.length);
             animator.Update(0f);
             Debug.Log(animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
         }
         else
             Debug.LogError("Model must have animator attached");
         
+        // Move rigged model to volumetric model for easier use
         riggedModel.transform.position = volumetricModels[0].transform.position;
     }
 
+    // Called on each frame update; listening for any inputs by user
     private void HandleMovement()
     {
+        // Finds which model to move (rigged or volumetric, current visible model moved)
         GameObject currentModel = (showRiggedModel) ? riggedModel : volumetricModels[currentModelNumber];
         if (currentModel == null) { return; }
 
+        // Set speeds
         float moveSpeed = 1f * Time.deltaTime;
         float rotateSpeed = 50f * Time.deltaTime;
 
-
+        // Listen for movement
         if (Input.GetKey(KeyCode.W))
             currentModel.transform.position += Vector3.forward * moveSpeed;
         if (Input.GetKey(KeyCode.A))
@@ -276,6 +298,7 @@ public class MoveModels : MonoBehaviour
         if (Input.GetKey(KeyCode.S))
             currentModel.transform.position += Vector3.back * moveSpeed;
 
+        // Change the rotation
         if (Input.GetKey(KeyCode.LeftArrow))
             currentModel.transform.Rotate(Vector3.up, -rotateSpeed);
         if (Input.GetKey(KeyCode.RightArrow))
@@ -287,7 +310,8 @@ public class MoveModels : MonoBehaviour
     }
 }
 
-[System.Serializable]
+// Needed for parsing list to JSON file
+[System.Serializable] // Serialisable since assigned initially in inspector not during runtime
 public class AlignmentsWrapper
 {
     public List<Alignments> alignments;

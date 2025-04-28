@@ -10423,7 +10423,7 @@ MonoBehaviour:
   decalMaterial: {fileID: 2100000, guid: 73e2ed6a43c80db4cad6042a534f3522, type: 2}
   player: {fileID: 92128255}
   playerCam: {fileID: 1729352831}
-  proximityToSwitch: 7
+  proximityToSwitch: 3
 --- !u!4 &1610426877
 Transform:
   m_ObjectHideFlags: 0
