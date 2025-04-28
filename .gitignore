@@ -75,3 +75,4 @@ crashlytics-build.properties
 # Ignore files which are too large for github
 /[Aa]ssets/DepthKit Clips/
 /[Aa]ssets/DepthKit Clips.meta
+/[Bb]uilds/

@@ -67,7 +67,7 @@ public class Action
             VideoPlayer depthkitVideoPlayer = depthkitObject.GetComponent<VideoPlayer>();
             //Debug.Log($"Length: {depthkitVideoPlayer.length}");
             Debug.Log($" Depthkit Time: {depthkitVideoPlayer.time}");
-            float normalizedTime = (float)((depthkitVideoPlayer.time) / depthkitVideoPlayer.length); // TODO: Make this actually find the right time
+            float normalizedTime = (float)((depthkitVideoPlayer.time) / depthkitVideoPlayer.length);
             Debug.Log(normalizedTime);
 
             setObjectVisibility(depthkitObject, false);
@@ -154,7 +154,6 @@ public class VolumetricSwitcher : MonoBehaviour
 {
 
     public GameObject riggedModel;
-    public double riggedModelOffset = 0.0;
     private AudioSource Audio;
 
     public List<Action> exhibitTalks = new List<Action>()
@@ -186,6 +185,11 @@ public class VolumetricSwitcher : MonoBehaviour
         
         SwitchToPlayerMode(false);
         SwitchState(guideStates.Align);
+        
+        // Pass reference to rigged model to each group of exhibit talks containing volumetric videos
+        foreach (var talk in exhibitTalks) {
+            talk.Init(riggedModel);
+        }
     }
 
     public void SwitchState(guideStates newState) {
@@ -230,9 +234,7 @@ public class VolumetricSwitcher : MonoBehaviour
             case guideStates.Transition:
                 break;
             case guideStates.Talk:
-                foreach (var talk in exhibitTalks) {
-                    talk.Init(riggedModel);
-                }
+                
 
                 DisableCircles();
 
@@ -347,20 +349,15 @@ public class VolumetricSwitcher : MonoBehaviour
         }
     }
 
-    public void triggerTransition()
-    {
-        CurrentStep = CurrentStep + 1;
-    }
-
     public bool clipEnded()
     {
         return false; // steps[CurrentStep].riggedModel.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime == 1;
     }
 
-    //public GameObject GetRiggedModel()
-    //{
-    //    return exhibitTalks[CurrentStep].riggedModel;
-    //}
+    public GameObject getRiggedModel()
+    {
+        return riggedModel; 
+    }
 
     public bool checkIfUsingRiggedModel()
     {

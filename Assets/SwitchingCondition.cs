@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 public class SwitchingCondition : MonoBehaviour
 {
-    public GameObject riggedmodel;
+    private GameObject riggedmodel;
     private VolumetricSwitcher switcher;
     private List<Alignments> alignments;
     private Vector3 currentTalkLocation;
@@ -26,6 +26,7 @@ public class SwitchingCondition : MonoBehaviour
     {
         switcher = GetComponent<VolumetricSwitcher>();
         player = switcher.getPlayer();
+        riggedmodel = switcher.getRiggedModel();
         guide = riggedmodel.GetComponent<RiggedGuide>();
         agent = guide.GetComponent<NavMeshAgent>();
     }
